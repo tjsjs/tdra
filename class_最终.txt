@@ -1,0 +1,201 @@
+package lee.calculators;
+
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import java.util.Stack;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private Button btn_1, btn_2, btn_3, btn_4, btn_5, btn_6, btn_7, btn_8, btn_9, btn_0,
+            btn_jia, btn_jian, btn_chu, btn_cheng, btn_kh1, btn_kh2,
+            btn_dengyu, btn_qingling, btn_chehui; //各个按钮
+    private TextView tv_show;      //显示输入数字和结果
+    private EditText et_show;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        setTitle("计算器");
+        //获得各个控件
+        tv_show = (TextView) findViewById(R.id.tv_show);
+        btn_0 = (Button) findViewById(R.id.btn_0);
+        btn_1 = (Button) findViewById(R.id.btn_1);
+        btn_2 = (Button) findViewById(R.id.btn_2);
+        btn_3 = (Button) findViewById(R.id.btn_3);
+        btn_4 = (Button) findViewById(R.id.btn_4);
+        btn_5 = (Button) findViewById(R.id.btn_5);
+        btn_6 = (Button) findViewById(R.id.btn_6);
+        btn_7 = (Button) findViewById(R.id.btn_7);
+        btn_8 = (Button) findViewById(R.id.btn_8);
+        btn_9 = (Button) findViewById(R.id.btn_9);
+
+        btn_jia = (Button) findViewById(R.id.btn_jia);
+        btn_jian = (Button) findViewById(R.id.btn_jian);
+        btn_cheng = (Button) findViewById(R.id.btn_cheng);
+        btn_chu = (Button) findViewById(R.id.btn_chu);
+        btn_kh1 = (Button) findViewById(R.id.btn_kh1);
+        btn_kh2 = (Button) findViewById(R.id.btn_kh2);
+        btn_dengyu = (Button) findViewById(R.id.btn_dengyu);
+        btn_qingling = (Button) findViewById(R.id.btn_qingling);
+        btn_chehui = (Button) findViewById(R.id.btn_chehui);
+        et_show = (EditText) findViewById(R.id.et_show);
+        //设置监听器
+        btn_0.setOnClickListener(this);
+        btn_1.setOnClickListener(this);
+        btn_2.setOnClickListener(this);
+        btn_3.setOnClickListener(this);
+        btn_4.setOnClickListener(this);
+        btn_5.setOnClickListener(this);
+        btn_6.setOnClickListener(this);
+        btn_7.setOnClickListener(this);
+        btn_8.setOnClickListener(this);
+        btn_9.setOnClickListener(this);
+
+        btn_jia.setOnClickListener(this);
+        btn_jian.setOnClickListener(this);
+        btn_cheng.setOnClickListener(this);
+        btn_chu.setOnClickListener(this);
+        btn_kh1.setOnClickListener(this);
+        btn_kh2.setOnClickListener(this);
+        btn_qingling.setOnClickListener(this);
+        btn_chehui.setOnClickListener(this);
+        btn_dengyu.setOnClickListener(this);
+        et_show.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        String str = et_show.getText().toString(); //输入的字符
+        switch (v.getId()) {
+            case R.id.btn_0:
+            case R.id.btn_1:
+            case R.id.btn_2:
+            case R.id.btn_3:
+            case R.id.btn_4:
+            case R.id.btn_5:
+            case R.id.btn_6:
+            case R.id.btn_7:
+            case R.id.btn_8:
+            case R.id.btn_9:
+                et_show.setText(str + ((Button) v).getText());
+                break;
+
+            case R.id.btn_jia:
+            case R.id.btn_jian:
+            case R.id.btn_cheng:
+            case R.id.btn_chu:
+            case R.id.btn_kh1:
+            case R.id.btn_kh2:
+                et_show.setText(str + ((Button) v).getText());
+                break;
+
+            case R.id.btn_qingling:
+                et_show.setText("");
+                tv_show.setText("");
+                break;
+            case R.id.btn_chehui:
+                str = et_show.getText().toString();
+                try {
+                    et_show.setText(str.substring(0, str.length() - 1));
+                } catch (Exception e) {
+                    et_show.setText("");
+                }
+                break;
+
+            case R.id.btn_dengyu:
+                try {
+                    str = et_show.getText().toString();
+                    Result(str);//调用逆波兰表达式计算
+                    tv_show.setText(str);
+                } catch (Exception e) {
+                    et_show.setText("异常错误");
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void Result(String ss) {
+        Stack<Double> nums = new Stack<Double>(); // 数字存入
+        Stack<Character> opes = new Stack<Character>(); // 存操作符
+        double n = 0; // 保存每一个数字
+        char[] cs = ss.toCharArray(); //字符串存入
+        for (int i = 0; i < cs.length; i++) {
+            char temp = cs[i];
+            if (Character.isDigit(cs[i])) {
+                n = 10 * n + Integer.parseInt(String.valueOf(cs[i])); // 单个数字字符进行整合
+            } else {
+                if (n != 0) {
+                    nums.push(n);
+                    n = 0;
+                }
+                if (temp == '(') {
+                    opes.push(temp);
+                } else if (temp == ')') {
+                    while (opes.peek() != '(') { // 括号里面运算完
+                        double t = cal(nums.pop(), nums.pop(), opes.pop());
+                        nums.push(t);
+                    }
+                    opes.pop();
+                } else if (isType(temp) > 0) {
+                    if (opes.isEmpty()) { // 栈为空直接入栈
+                        opes.push(temp);
+                    } else {
+                        // 若栈顶元素优先级大于或等于要入栈的元素,将栈顶元素弹出并计算,然后入栈
+                        if (isType(opes.peek()) >= isType(temp)) {
+                            double t = cal(nums.pop(), nums.pop(), opes.pop());
+                            nums.push(t);
+                        }
+                        opes.push(temp);
+                    }
+                }
+            }
+        }
+        // 最后一个字符若是数字,未入栈
+        if (n != 0) {
+            nums.push(n);
+        }
+        while (!opes.isEmpty()) {
+            double t = cal(nums.pop(), nums.pop(), opes.pop());
+            nums.push(t);
+        }
+        try {
+            et_show.setText(nums.pop() + "");
+        } catch (Exception e) {
+            et_show.setText("异常错误");
+        }
+    }
+
+    // 返回的是运算符的优先级,数字和()不需要考虑
+    public static int isType(char c) {
+        if (c == '+' || c == '-') {
+            return 1;
+        } else if (c == '*' || c == '/') {
+            return 2;
+        } else {
+            return 0;
+        }
+    }
+
+    // 运算次序是反的,跟入栈出栈次序有关
+    public static double cal(double m, double n, char c) {
+        double sum = 0;
+        if (c == '+') {
+            sum = n + m;
+        } else if (c == '-') {
+            sum = n - m;
+        } else if (c == '*') {
+            sum = n * m;
+        } else if (c == '/') {
+            sum = n / m;
+        }
+        return sum;
+    }
+}
